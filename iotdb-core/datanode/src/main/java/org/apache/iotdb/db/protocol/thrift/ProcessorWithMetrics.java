@@ -47,9 +47,12 @@ public class ProcessorWithMetrics extends Processor {
 
   @Override
   public void process(TProtocol in, TProtocol out) throws TException {
+    // 从输入协议中读取消息头，获取消息名称、类型、序列号
     TMessage msg = in.readMessageBegin();
     long startTime = System.nanoTime();
+    // 根据消息名称 msg.name 获取对应的处理函数，如果找不到则抛出异常
     ProcessFunction fn = (ProcessFunction) getProcessMapView().get(msg.name);
+    // 如果找不到对应的处理函数，则抛出异常
     if (fn == null) {
       TProtocolUtil.skip(in, TType.STRUCT);
       in.readMessageEnd();
@@ -61,6 +64,7 @@ public class ProcessorWithMetrics extends Processor {
       out.writeMessageEnd();
       out.getTransport().flush();
     } else {
+      // 调用对应的处理函数
       fn.process(msg.seqid, in, out, iface);
     }
     long cost = System.nanoTime() - startTime;

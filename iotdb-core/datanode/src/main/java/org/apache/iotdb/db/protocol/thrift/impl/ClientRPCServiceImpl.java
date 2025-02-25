@@ -296,6 +296,7 @@ public class ClientRPCServiceImpl implements IClientRPCServiceWithHandler {
     relationSqlParser = new SqlParser();
   }
 
+  // DataNode 中处理客户端的SQl
   private TSExecuteStatementResp executeStatementInternal(
       TSExecuteStatementReq req, SelectResult setResult) {
     boolean finished = false;
@@ -318,6 +319,7 @@ public class ClientRPCServiceImpl implements IClientRPCServiceWithHandler {
     try {
       // create and cache dataset
       ExecutionResult result;
+      // 解析树模型或表模型的SQl语句
       if (clientSession.getSqlDialect() == IClientSession.SqlDialect.TREE) {
         Statement s = StatementGenerator.createStatement(statement, clientSession.getZoneId());
 
@@ -346,6 +348,7 @@ public class ClientRPCServiceImpl implements IClientRPCServiceWithHandler {
 
         queryId = SESSION_MANAGER.requestQueryId(clientSession, req.statementId);
 
+        // 执行语句
         result =
             COORDINATOR.executeForTreeModel(
                 s,

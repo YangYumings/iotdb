@@ -66,6 +66,7 @@ public class IoTDBStatement implements Statement {
    */
   private int queryTimeout = -1;
 
+  // 客户端实例
   protected IClientRPCService.Iface client;
   private List<String> batchSQLList;
   private static final String NOT_SUPPORT_EXECUTE = "Not support execute";
@@ -204,6 +205,7 @@ public class IoTDBStatement implements Statement {
     try {
       if (queryId != -1) {
         TSCancelOperationReq closeReq = new TSCancelOperationReq(sessionId, queryId);
+        // 取消操作
         TSStatus closeResp = client.cancelOperation(closeReq);
         RpcUtils.verifySuccess(closeResp);
       }
@@ -231,6 +233,7 @@ public class IoTDBStatement implements Statement {
       if (stmtId != -1) {
         TSCloseOperationReq closeReq = new TSCloseOperationReq(sessionId);
         closeReq.setStatementId(stmtId);
+        // 结束操作
         TSStatus closeResp = client.closeOperation(closeReq);
         RpcUtils.verifySuccess(closeResp);
         stmtId = -1;
@@ -318,6 +321,7 @@ public class IoTDBStatement implements Statement {
     }
     execReq.setFetchSize(rows);
     execReq.setTimeout((long) queryTimeout * 1000);
+    // 执行表模型 sql
     TSExecuteStatementResp execResp = client.executeStatementV2(execReq);
     try {
       RpcUtils.verifySuccess(execResp.getStatus());
@@ -389,6 +393,7 @@ public class IoTDBStatement implements Statement {
   private int[] executeBatchSQL() throws TException, BatchUpdateException {
     isCancelled = false;
     TSExecuteBatchStatementReq execReq = new TSExecuteBatchStatementReq(sessionId, batchSQLList);
+    // 批量执行树模型 sql
     TSStatus execResp = client.executeBatchStatement(execReq);
     int[] result = new int[batchSQLList.size()];
     boolean allSuccess = true;
@@ -471,6 +476,7 @@ public class IoTDBStatement implements Statement {
     execReq.setFetchSize(rows);
     execReq.setTimeout(timeoutInMS);
     execReq.setJdbcQuery(true);
+    // 执行表模型的查询语句
     TSExecuteStatementResp execResp = client.executeQueryStatementV2(execReq);
     queryId = execResp.getQueryId();
     try {
@@ -555,6 +561,7 @@ public class IoTDBStatement implements Statement {
 
   private int executeUpdateSQL(final String sql) throws TException, IoTDBSQLException {
     final TSExecuteStatementReq execReq = new TSExecuteStatementReq(sessionId, sql, stmtId);
+    // 执行树模型的更新语句
     final TSExecuteStatementResp execResp = client.executeUpdateStatement(execReq);
     if (execResp.isSetQueryId()) {
       queryId = execResp.getQueryId();
@@ -723,6 +730,7 @@ public class IoTDBStatement implements Statement {
     this.client = connection.getClient();
     this.sessionId = connection.getSessionId();
     try {
+      // 获取请求中 sql 的 id
       this.stmtId = client.requestStatementId(sessionId);
       return true;
     } catch (Exception e) {
